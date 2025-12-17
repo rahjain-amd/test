@@ -1,0 +1,91 @@
+# Example GitHub Actions workflow that requires approval
+# Place this file in: .github/workflows/example_deploy.yml in your repository
+
+name: Deploy to Production
+
+# Trigger on push to main branch
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  # Build job (runs without approval)
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Build application
+        run: |
+          echo "Building application..."
+          # Add your build commands here
+      
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          # Add your test commands here
+
+  # Deploy job (requires approval via environment protection)
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    # This environment must be configured in GitHub Settings
+    # Settings > Environments > production > Required reviewers
+    environment:
+      name: production
+      url: https://your-app-url.com
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production..."
+          # Add your deployment commands here
+          # This step will wait for approval before running
+      
+      - name: Notify deployment success
+        run: |
+          echo "Deployment successful!"
+
+  # Another example with staging environment
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    # Staging environment (can have different reviewers)
+    environment:
+      name: staging
+      url: https://staging.your-app-url.com
+    
+    steps:
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging..."
+          # Add your staging deployment commands here
+
+# How to set up environment protection rules:
+# 
+# 1. Go to your repository on GitHub
+# 2. Click Settings > Environments
+# 3. Click "New environment" or select existing one
+# 4. Enter environment name (e.g., "production")
+# 5. Under "Environment protection rules":
+#    - Check "Required reviewers"
+#    - Add team members who can approve (up to 6)
+#    - Optionally set "Wait timer" for additional delay
+# 6. Click "Save protection rules"
+#
+# Now, when this workflow runs and reaches the deploy job,
+# it will wait for approval from one of the required reviewers.
+# You can approve it using the GitHub Workflow Approval Dashboard!
+
